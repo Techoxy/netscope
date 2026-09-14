@@ -1,5 +1,5 @@
 import argparse
-
+from netscope.output import format_terminal
 from netscope.engine import run_scan
 from netscope.scanner import parse_port_range
 
@@ -65,25 +65,7 @@ def main() -> None:
     except ValueError as exc:
         parser.error(str(exc))
 
-    for result in results:
-        if result.is_open:
-            service = (
-                result.service_info.service
-                if result.service_info
-                else "unknown"
-            )
-
-            latency = (
-                f"{result.latency_ms:.2f} ms"
-                if result.latency_ms is not None
-                else "-"
-            )
-
-            print(
-                f"{result.port:5}  OPEN  "
-                f"{latency:>10}  {service}"
-            )
-
+    print(format_terminal(results))
 
 if __name__ == "__main__":
     main()
