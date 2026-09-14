@@ -22,3 +22,6 @@ Thumbs.db
 # Project output
 *.log
 *.json
+
+# Python packaging
+*.egg-info/

@@ -1,9 +1,0 @@
-README.md
-pyproject.toml
-netscope/__init__.py
-netscope/scanner.py
-netscope.egg-info/PKG-INFO
-netscope.egg-info/SOURCES.txt
-netscope.egg-info/dependency_links.txt
-netscope.egg-info/top_level.txt
-tests/test_scanner.py
