@@ -83,6 +83,26 @@ def identify_http(response: str) -> ServiceInfo | None:
         banner=response,
     )
 
+
+def identify_ssh(response: str) -> ServiceInfo | None:
+    """Identify SSH service information from an SSH banner."""
+
+    if not response.startswith("SSH-"):
+        return None
+
+    parts = response.split("-", 2)
+
+    if len(parts) < 3:
+        return None
+
+    version = parts[1]
+
+    return ServiceInfo(
+        service="SSH",
+        version=version,
+        banner=response,
+    )
+
 def analyze_service(
     host: str,
     port: int,
@@ -93,6 +113,19 @@ def analyze_service(
 
     if response:
         info = identify_http(response)
+
+        if info:
+            return info
+
+        info = identify_ssh(response)
+
+        if info:
+            return info
+
+    response = grab_banner(host, port)
+
+    if response:
+        info = identify_ssh(response)
 
         if info:
             return info
