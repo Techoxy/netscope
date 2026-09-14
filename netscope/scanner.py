@@ -47,7 +47,11 @@ def parse_port_range(port_spec: str) -> list[int]:
             if len(parts) != 2:
                 raise ValueError(f"Invalid port range: {item}")
 
-            start, end = map(int, parts)
+            try:
+                start, end = map(int, parts)
+            except ValueError as exc:
+                raise ValueError(f"Invalid port range: {item}") from exc
+
 
             if not (1 <= start <= 65535):
                 raise ValueError("Start port must be between 1 and 65535.")
@@ -61,7 +65,11 @@ def parse_port_range(port_spec: str) -> list[int]:
             ports.update(range(start, end + 1))
 
         else:
-            port = int(item)
+            try:
+                port = int(item)
+            except ValueError as exc:
+                raise ValueError(f"Invalid port: {item}") from exc
+
 
             if not (1 <= port <= 65535):
                 raise ValueError("Port must be between 1 and 65535.")

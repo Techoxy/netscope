@@ -1,4 +1,5 @@
 from netscope.scanner import parse_port_range, scan_port, scan_ports
+import pytest
 
 
 def test_closed_port():
@@ -59,3 +60,11 @@ def test_invalid_port_specification():
         assert False
     except ValueError:
         assert True
+def test_invalid_single_port_format():
+    with pytest.raises(ValueError, match="Invalid port: abc"):
+        parse_port_range("abc")
+
+
+def test_invalid_port_range_format():
+    with pytest.raises(ValueError, match="Invalid port range: 80-"):
+        parse_port_range("80-")
