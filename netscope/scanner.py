@@ -1,5 +1,5 @@
 import socket
-
+from concurrent.futures import ThreadPoolExecutor
 
 def scan_port(host: str, port: int, timeout: float = 1.0) -> bool:
     """Check whether a TCP port accepts a connection."""
@@ -29,17 +29,25 @@ def parse_port_range(port_range: str) -> list[int]:
 
     return list(range(start, end + 1))
 
+
 def scan_ports(
     host: str,
     ports: list[int],
     timeout: float = 1.0,
+    workers: int = 50,
 ) -> list[int]:
-    """Scan multiple TCP ports and return the ports that are open."""
+    """Scan multiple TCP ports concurrently."""
 
     open_ports = []
 
-    for port in ports:
-        if scan_port(host, port, timeout):
-            open_ports.append(port)
+    with ThreadPoolExecutor(max_workers=workers) as executor:
+        results = executor.map(
+            lambda port: (port, scan_port(host, port, timeout)),
+            ports,
+        )
+
+        for port, is_open in results:
+            if is_open:
+                open_ports.append(port)
 
     return open_ports
