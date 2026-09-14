@@ -1,4 +1,6 @@
 import socket
+from collections.abc import Callable
+
 from netscope.models import ServiceInfo
 
 
@@ -57,6 +59,7 @@ def probe_http(
         except (socket.timeout, ConnectionRefusedError, OSError):
             return None
 
+
 def identify_http(response: str) -> ServiceInfo | None:
     """Identify HTTP service information from an HTTP response."""
 
@@ -75,11 +78,9 @@ def identify_http(response: str) -> ServiceInfo | None:
             server_header = line.split(":", 1)[1].strip()
             break
 
-    version = server_header
-
     return ServiceInfo(
         service="HTTP",
-        version=version,
+        version=server_header,
         banner=response,
     )
 
@@ -95,13 +96,32 @@ def identify_ssh(response: str) -> ServiceInfo | None:
     if len(parts) < 3:
         return None
 
-    version = parts[1]
-
     return ServiceInfo(
         service="SSH",
-        version=version,
+        version=parts[1],
         banner=response,
     )
+
+
+Detector = Callable[[str], ServiceInfo | None]
+
+DETECTORS: tuple[Detector, ...] = (
+    identify_http,
+    identify_ssh,
+)
+
+
+def identify_service(response: str) -> ServiceInfo | None:
+    """Identify a service using the registered protocol detectors."""
+
+    for detector in DETECTORS:
+        info = detector(response)
+
+        if info:
+            return info
+
+    return None
+
 
 def analyze_service(
     host: str,
@@ -112,12 +132,7 @@ def analyze_service(
     response = probe_http(host, port)
 
     if response:
-        info = identify_http(response)
-
-        if info:
-            return info
-
-        info = identify_ssh(response)
+        info = identify_service(response)
 
         if info:
             return info
@@ -125,9 +140,6 @@ def analyze_service(
     response = grab_banner(host, port)
 
     if response:
-        info = identify_ssh(response)
-
-        if info:
-            return info
+        return identify_service(response)
 
     return None
