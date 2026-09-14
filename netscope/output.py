@@ -4,18 +4,31 @@ from netscope.models import ScanResult
 
 
 def format_terminal(results: list[ScanResult]) -> str:
-    """Format scan results for human-readable terminal output."""
+    """Format scan results as a human-readable terminal report."""
 
-    lines = []
+    lines = [
+        "PORT   STATE   LATENCY      SERVICE   VERSION",
+        "-" * 50,
+    ]
+
+    open_count = 0
 
     for result in results:
         if not result.is_open:
             continue
 
+        open_count += 1
+
         service = (
             result.service_info.service
             if result.service_info
             else "unknown"
+        )
+
+        version = (
+            result.service_info.version
+            if result.service_info and result.service_info.version
+            else "-"
         )
 
         latency = (
@@ -25,9 +38,21 @@ def format_terminal(results: list[ScanResult]) -> str:
         )
 
         lines.append(
-            f"{result.port:5}  OPEN  "
-            f"{latency:>10}  {service}"
+            f"{result.port:<6}"
+            f"{'OPEN':<8}"
+            f"{latency:<13}"
+            f"{service:<10}"
+            f"{version}"
         )
+
+    lines.extend(
+        [
+            "",
+            f"Ports scanned: {len(results)}",
+            f"Open ports:   {open_count}",
+            f"Closed ports: {len(results) - open_count}",
+        ]
+    )
 
     return "\n".join(lines)
 
