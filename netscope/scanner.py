@@ -1,17 +1,31 @@
 import socket
 from concurrent.futures import ThreadPoolExecutor
+import time
+from netscope.models import ScanResult
 
-def scan_port(host: str, port: int, timeout: float = 1.0) -> bool:
+def scan_port(host: str, port: int, timeout: float = 1.0) -> ScanResult:
     """Check whether a TCP port accepts a connection."""
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         sock.settimeout(timeout)
 
+        start = time.perf_counter()
+
         try:
             sock.connect((host, port))
-            return True
+            latency_ms = (time.perf_counter() - start) * 1000
+
+            return ScanResult(
+                port=port,
+                is_open=True,
+                latency_ms=latency_ms,
+            )
+
         except (socket.timeout, ConnectionRefusedError, OSError):
-            return False
+            return ScanResult(
+                port=port,
+                is_open=False,
+            )
 
 def parse_port_range(port_range: str) -> list[int]:
     """Convert a port range string into a list of valid TCP ports."""
@@ -35,19 +49,13 @@ def scan_ports(
     ports: list[int],
     timeout: float = 1.0,
     workers: int = 50,
-) -> list[int]:
+) -> list[ScanResult]:
     """Scan multiple TCP ports concurrently."""
-
-    open_ports = []
 
     with ThreadPoolExecutor(max_workers=workers) as executor:
         results = executor.map(
-            lambda port: (port, scan_port(host, port, timeout)),
+            lambda port: scan_port(host, port, timeout),
             ports,
         )
 
-        for port, is_open in results:
-            if is_open:
-                open_ports.append(port)
-
-    return open_ports
+        return list(results)
