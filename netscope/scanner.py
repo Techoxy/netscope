@@ -13,6 +13,21 @@ def scan_port(host: str, port: int, timeout: float = 1.0) -> bool:
         except (socket.timeout, ConnectionRefusedError, OSError):
             return False
 
+def parse_port_range(port_range: str) -> list[int]:
+    """Convert a port range string into a list of valid TCP ports."""
+
+    start, end = map(int, port_range.split("-"))
+
+    if not (1 <= start <= 65535):
+        raise ValueError("Start port must be between 1 and 65535.")
+
+    if not (1 <= end <= 65535):
+        raise ValueError("End port must be between 1 and 65535.")
+
+    if start > end:
+        raise ValueError("Start port cannot be greater than end port.")
+
+    return list(range(start, end + 1))
 
 def scan_ports(
     host: str,
