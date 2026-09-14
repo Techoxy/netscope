@@ -1,7 +1,9 @@
 import socket
-from concurrent.futures import ThreadPoolExecutor
 import time
+from concurrent.futures import ThreadPoolExecutor
+
 from netscope.models import ScanResult
+
 
 def scan_port(host: str, port: int, timeout: float = 1.0) -> ScanResult:
     """Check whether a TCP port accepts a connection."""
@@ -27,21 +29,46 @@ def scan_port(host: str, port: int, timeout: float = 1.0) -> ScanResult:
                 is_open=False,
             )
 
-def parse_port_range(port_range: str) -> list[int]:
-    """Convert a port range string into a list of valid TCP ports."""
 
-    start, end = map(int, port_range.split("-"))
+def parse_port_range(port_spec: str) -> list[int]:
+    """Convert a port specification into a sorted list of TCP ports."""
 
-    if not (1 <= start <= 65535):
-        raise ValueError("Start port must be between 1 and 65535.")
+    ports = set()
 
-    if not (1 <= end <= 65535):
-        raise ValueError("End port must be between 1 and 65535.")
+    for item in port_spec.split(","):
+        item = item.strip()
 
-    if start > end:
-        raise ValueError("Start port cannot be greater than end port.")
+        if not item:
+            raise ValueError("Port specification contains an empty item.")
 
-    return list(range(start, end + 1))
+        if "-" in item:
+            parts = item.split("-")
+
+            if len(parts) != 2:
+                raise ValueError(f"Invalid port range: {item}")
+
+            start, end = map(int, parts)
+
+            if not (1 <= start <= 65535):
+                raise ValueError("Start port must be between 1 and 65535.")
+
+            if not (1 <= end <= 65535):
+                raise ValueError("End port must be between 1 and 65535.")
+
+            if start > end:
+                raise ValueError("Start port cannot be greater than end port.")
+
+            ports.update(range(start, end + 1))
+
+        else:
+            port = int(item)
+
+            if not (1 <= port <= 65535):
+                raise ValueError("Port must be between 1 and 65535.")
+
+            ports.add(port)
+
+    return sorted(ports)
 
 
 def scan_ports(

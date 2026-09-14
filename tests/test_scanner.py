@@ -23,10 +23,39 @@ def test_parse_port_range():
 def test_single_port_range():
     assert parse_port_range("443-443") == [443]
 
+def test_single_port():
+    assert parse_port_range("443") == [443]
+
+
+def test_multiple_ports():
+    assert parse_port_range("22,80,443") == [22, 80, 443]
+
+
+def test_mixed_port_specification():
+    assert parse_port_range("20-22,80,443") == [20, 21, 22, 80, 443]
+
+
+def test_duplicate_ports():
+    assert parse_port_range("80,80,81") == [80, 81]
+
 
 def test_invalid_port_range():
     try:
         parse_port_range("70000-70005")
+        assert False
+    except ValueError:
+        assert True
+def test_invalid_single_port():
+    try:
+        parse_port_range("70000")
+        assert False
+    except ValueError:
+        assert True
+
+
+def test_invalid_port_specification():
+    try:
+        parse_port_range("80-90-100")
         assert False
     except ValueError:
         assert True
