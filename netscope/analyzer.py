@@ -102,12 +102,24 @@ def identify_ssh(response: str) -> ServiceInfo | None:
         banner=response,
     )
 
+def identify_ftp(response: str) -> ServiceInfo | None:
+    """Identify FTP service information from an FTP banner."""
+
+    if not response.startswith("220"):
+        return None
+
+    return ServiceInfo(
+        service="FTP",
+        version=None,
+        banner=response,
+    )
 
 Detector = Callable[[str], ServiceInfo | None]
 
 DETECTORS: tuple[Detector, ...] = (
     identify_http,
     identify_ssh,
+    identify_ftp,
 )
 
 

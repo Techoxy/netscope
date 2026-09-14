@@ -1,4 +1,5 @@
 from netscope.analyzer import (
+    identify_ftp,
     identify_http,
     identify_service,
     identify_ssh,
@@ -54,3 +55,18 @@ def test_identify_service_unknown():
     result = identify_service("UNKNOWN-PROTOCOL")
 
     assert result is None
+def test_identify_ftp():
+    response = "220 NetScope FTP Test Server"
+
+    result = identify_ftp(response)
+
+    assert result is not None
+    assert result.service == "FTP"
+    assert result.banner == response
+
+
+def test_identify_service_ftp():
+    result = identify_service("220 NetScope FTP Test Server")
+
+    assert result is not None
+    assert result.service == "FTP"
