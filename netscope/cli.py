@@ -1,5 +1,5 @@
 import argparse
-from netscope.output import format_terminal
+from netscope.output import format_json,format_terminal
 from netscope.engine import run_scan
 from netscope.scanner import parse_port_range
 
@@ -37,6 +37,12 @@ def build_parser() -> argparse.ArgumentParser:
         help="Maximum concurrent workers (default: 50).",
     )
 
+    parser.add_argument(
+        "--format",
+        choices=["terminal", "json"],
+        default="terminal",
+        help="Output format (default: terminal).",
+    )
     return parser
 
 
@@ -65,7 +71,10 @@ def main() -> None:
     except ValueError as exc:
         parser.error(str(exc))
 
-    print(format_terminal(results))
+    if args.format == "json":
+       print(format_json(results))
+    else:
+       print(format_terminal(results))
 
 if __name__ == "__main__":
     main()
