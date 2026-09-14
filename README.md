@@ -163,38 +163,69 @@ netscope 127.0.0.1 --ports 80,443 --format json
 
 ## Example Output
 
-If a local HTTP server is running on port `9001`:
+NetScope was tested against a controlled local environment containing three TCP services:
+
+- HTTP on port 9001
+- SSH-like test service on port 9002
+- FTP-like test service on port 9003
+
+Command:
+
+```bash
+netscope localhost --ports 9001-9003
+```
+
+Output:
 
 ```text
-$ netscope localhost --ports 9001
-
 PORT   STATE   LATENCY      SERVICE   VERSION
 --------------------------------------------------
-9001  OPEN    0.XX ms      HTTP      SimpleHTTP/...
+9001  OPEN    0.16 ms      HTTP      SimpleHTTP/0.6 Python/3.14.6
+9002  OPEN    3.08 ms      SSH       2.0
+9003  OPEN    0.08 ms      FTP       -
 
-Ports scanned: 1
-Open ports:   1
+Ports scanned: 3
+Open ports:   3
 Closed ports: 0
 ```
 
-The exact latency and service version depend on the local environment.
+JSON output is also supported:
 
-### JSON output
+```bash
+netscope localhost --ports 9001-9003 --format json
+```
 
-Example:
+Example structure:
 
 ```json
 [
   {
     "port": 9001,
     "is_open": true,
-    "latency_ms": 0.25,
+    "latency_ms": 0.234,
     "service": "HTTP",
-    "version": "SimpleHTTP/..."
+    "version": "SimpleHTTP/0.6 Python/3.14.6"
+  },
+  {
+    "port": 9002,
+    "is_open": true,
+    "latency_ms": 0.168,
+    "service": "SSH",
+    "version": "2.0"
+  },
+  {
+    "port": 9003,
+    "is_open": true,
+    "latency_ms": 1.388,
+    "service": "FTP",
+    "version": null
   }
 ]
 ```
 
+Latency values vary between runs and depend on the local environment.
+
+```
 ---
 
 ## Service Detection
